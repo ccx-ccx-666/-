@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>电动车租赁计算器</title>
+  <style>
+    :root{
+      --bg1:#eaf6ff;
+      --bg2:#dff3ff;
+      --card:#ffffff;
+      --muted:#8a97a6;
+      --text:#1c2b3a;
+      --line:#e8edf3;
+      --green:#12b76a;
+      --green2:#0ea85f;
+      --shadow: 0 10px 24px rgba(16,24,40,.08);
+      --radius: 12px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color:var(--text);
+      background: linear-gradient(180deg,var(--bg1),var(--bg2));
+      min-height:100vh;
+    }
+
+    /* 顶部栏（简化复刻） */
+    .topbar{
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 18px;
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(8px);
+      border-bottom:1px solid rgba(232,237,243,.9);
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:600;
+    }
+    .brand-dot{
+      width:10px;height:10px;border-radius:50%;
+      background: var(--green);
+      box-shadow:0 0 0 4px rgba(18,183,106,.18);
+    }
+    .top-actions{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .pill{
+      border:1px solid var(--line);
+      background:#fff;
+      padding:6px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    /* 主体 */
+    .wrap{
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 34px 16px 60px;
+    }
+    h1{
+      margin: 18px 0 20px;
+      text-align:center;
+      font-size: 20px;
+      color: #0aa55d;
+      font-weight: 700;
+      letter-spacing: .5px;
+    }
+
+    .stack{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      align-items:center;
+    }
+
+    .card{
+      width: min(560px, 100%);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border:1px solid rgba(232,237,243,.9);
+      padding: 18px;
+    }
+
+    .form-grid{
+      display:grid;
+      gap:12px;
+    }
+
+    label{
+      display:block;
+      font-size: 13px;
+      color: #506176;
+      margin-bottom: 6px;
+    }
+
+    input, select{
+      width:100%;
+      height:38px;
+      border-radius: 8px;
+      border:1px solid var(--line);
+      padding: 0 12px;
+      outline:none;
+      font-size:14px;
+      background:#fff;
+    }
+    input:focus, select:focus{
+      border-color: rgba(18,183,106,.65);
+      box-shadow:0 0 0 4px rgba(18,183,106,.14);
+    }
+
+    .btn{
+      margin-top: 6px;
+      height: 42px;
+      border:none;
+      width:100%;
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--green), var(--green2));
+      color:#fff;
+      font-weight:700;
+      letter-spacing:.5px;
+      cursor:pointer;
+    }
+    .btn:active{transform: translateY(1px);}
+
+    .section-title{
+      text-align:center;
+      margin: 6px 0 12px;
+      font-size: 14px;
+      color:#0aa55d;
+      font-weight:700;
+    }
+
+    .result-bar{
+      background: #f2fbf6;
+      border:1px solid #d8f3e4;
+      border-radius: 10px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:0;
+      overflow:hidden;
+    }
+    .result-item{
+      padding: 14px 12px;
+      text-align:center;
+    }
+    .result-item + .result-item{
+      border-left:1px solid #d8f3e4;
+    }
+    .result-label{
+      color:#5c6f83;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .result-val{
+      font-weight:800;
+      font-size: 16px;
+    }
+
+    .sub-title{
+      text-align:center;
+      margin: 14px 0 10px;
+      font-size: 14px;
+      color:#0aa55d;
+      font-weight:700;
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 10px;
+    }
+    thead th{
+      background: var(--green);
+      color:#fff;
+      font-weight:700;
+      font-size: 13px;
+      padding: 10px 8px;
+      text-align:center;
+    }
+    tbody td{
+      padding: 10px 8px;
+      text-align:center;
+      font-size: 13px;
+      border-bottom:1px solid #eef2f6;
+      color:#2c3e50;
+    }
+    tbody tr:last-child td{border-bottom:none;}
+
+    .footnote{
+      text-align:center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 18px;
+    }
+
+    .hide{display:none;}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span>电动车租赁公司</span>
+    </div>
+    <div class="top-actions">
+      <div class="pill" title="更多">···</div>
+      <div class="pill" title="分享">分享</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <h1>电动车租赁计算器</h1>
+
+    <div class="stack">
+      <div class="card">
+        <div class="form-grid">
+          <div>
+            <label for="price">车价（元）</label>
+            <input id="price" type="number" min="0" step="1" placeholder="请输入车价" />
+          </div>
+          <div>
+            <label for="term">租期</label>
+            <select id="term">
+              <option value="" disabled selected>请选择租期</option>
+              <option value="3">3个月</option>
+              <option value="6">6个月</option>
+              <option value="9">9个月</option>
+            </select>
+          </div>
+          <div>
+            <label for="startDate">起始日期</label>
+            <input id="startDate" type="date" />
+          </div>
+          <button id="calcBtn" class="btn" type="button">计算租金方案</button>
+        </div>
+      </div>
+
+      <div id="resultCard" class="card hide">
+        <div class="section-title">计算结果</div>
+        <div class="result-bar">
+          <div class="result-item">
+            <div class="result-label">保证金</div>
+            <div id="depositVal" class="result-val">¥--</div>
+          </div>
+          <div class="result-item">
+            <div class="result-label">每期租金</div>
+            <div id="rentVal" class="result-val">¥--</div>
+          </div>
+        </div>
+
+        <div class="sub-title">租期计划表</div>
+        <table>
+          <thead>
+            <tr>
+              <th>期数</th>
+              <th>支付日期</th>
+              <th>应付租金</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleBody"></tbody>
+        </table>
+      </div>
+
+      <div class="footnote">温馨提示：租期内不退押金，合约期满返还</div>
+    </div>
+  </div>
+
+  <script>
+    const priceEl = document.getElementById('price');
+    const termEl = document.getElementById('term');
+    const startDateEl = document.getElementById('startDate');
+    const calcBtn = document.getElementById('calcBtn');
+    const resultCard = document.getElementById('resultCard');
+    const depositVal = document.getElementById('depositVal');
+    const rentVal = document.getElementById('rentVal');
+    const scheduleBody = document.getElementById('scheduleBody');
+
+    function pad2(n){
+      return String(n).padStart(2,'0');
+    }
+
+    function formatDate(d){
+      const y = d.getFullYear();
+      const m = pad2(d.getMonth()+1);
+      const day = pad2(d.getDate());
+      return `${y}/${m}/${day}`;
+    }
+
+    function addMonths(date, months){
+      const d = new Date(date);
+      const day = d.getDate();
+      d.setMonth(d.getMonth() + months);
+      if (d.getDate() !== day) {
+        d.setDate(0);
+      }
+      return d;
+    }
+
+    function money(n){
+      const v = Math.round(n);
+      return `¥${v}`;
+    }
+
+    function computePlan(price, months){
+      // 根据你提供的原网站测试数据反推并实现算法：
+      // 1. 保证金 = 车价 * 0.25（始终一致）
+      // 2. 每期租金系数随租期变化，租期越长，系数越低。
+      const deposit = price * 0.25;
+
+      // 从已有数据反推出的精确系数
+      const rentRateMap = {
+        3: 1967 / 5000,  // 0.3934
+        6: 1133 / 5000,  // 0.2266
+        9: 806 / 5000,   // 0.1612
+        12: 0.1247      // 根据规律推算出的12个月系数
+      };
+
+      const rate = rentRateMap[months];
+      if (rate == null) {
+        // 对于其他未知的租期，可以返回错误或使用一个默认逻辑
+        alert('暂不支持该租期：' + months + '个月');
+        throw new Error('Unsupported term: ' + months);
+      }
+
+      const rentPerMonth = price * rate;
+      return {
+        deposit: Math.round(deposit),
+        rent: Math.round(rentPerMonth)
+      };
+    }
+
+    function renderSchedule(startDate, months, rent){
+      scheduleBody.innerHTML = '';
+      for (let i = 1; i <=months; i++){
+        const payDate = addMonths(startDate, i);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i}期</td>
+          <td>${formatDate(payDate)}</td>
+          <td>${money(rent)}</td>
+        `;
+        scheduleBody.appendChild(tr);
+      }
+    }
+
+    function todayISO(){
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = pad2(d.getMonth()+1);
+      const day = pad2(d.getDate());
+      return `${y}-${m}-${day}`;
+    }
+
+    startDateEl.value = todayISO();
+
+    function onCalc(){
+      const price = Number(priceEl.value);
+      const months = Number(termEl.value);
+      const startStr = startDateEl.value;
+
+      if (!Number.isFinite(price) || price <= 0){
+        alert('请输入正确的车价（必须大于 0）');
+        return;
+      }
+      if (!Number.isFinite(months) || months <= 0){
+        alert('请选择租期');
+        return;
+      }
+      if (!startStr){
+        alert('请选择起始日期');
+        return;
+      }
+
+      const startDate = new Date(startStr + 'T00:00:00');
+      const plan = computePlan(price, months);
+
+      depositVal.textContent = money(plan.deposit);
+      rentVal.textContent = money(plan.rent);
+      renderSchedule(startDate, months, plan.rent);
+
+      resultCard.classList.remove('hide');
+    }
+
+    calcBtn.addEventListener('click', onCalc);
+
+    onCalc();
+  </script>
+</body>
+</html>
+
